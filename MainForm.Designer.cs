@@ -58,6 +58,7 @@ namespace CannyEdgeDetection
 			this.btnCalculate.TabIndex = 0;
 			this.btnCalculate.Text = "Calculate";
 			this.btnCalculate.UseVisualStyleBackColor = true;
+			this.btnCalculate.Click += new System.EventHandler(this.BtnCalculateClick);
 			// 
 			// LogBox
 			// 
