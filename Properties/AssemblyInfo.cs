@@ -9,12 +9,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Motion_detect")]
+[assembly: AssemblyTitle("Canny-Edge-Detection")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Motion_detect")]
-[assembly: AssemblyCopyright("Copyright 2015")]
+[assembly: AssemblyProduct("Canny")]
+[assembly: AssemblyCopyright("Canny-Edge-Detection")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -3,10 +3,8 @@
  * User: VKirgintcev
  * Date: 27.05.2015
  * Time: 8:18
- * 
- * To change this template use Tools | Options | Coding | Edit Standard Headers.
  */
-namespace Motion_detect
+namespace CannyEdgeDetection
 {
 	partial class MainForm
 	{

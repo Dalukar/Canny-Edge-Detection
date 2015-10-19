@@ -3,14 +3,12 @@
  * User: VKirgintcev
  * Date: 27.05.2015
  * Time: 8:18
- * 
- * To change this template use Tools | Options | Coding | Edit Standard Headers.
  */
 using System;
 using System.Windows.Forms;
 
 
-namespace Motion_detect
+namespace CannyEdgeDetection
 {
 	/// <summary>
 	/// Class with program entry point.
