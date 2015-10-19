@@ -17,9 +17,20 @@ namespace CannyEdgeDetection
 	/// </summary>
 	public partial class MainForm : Form
 	{
-		CannyEdgeDetector Canny = new CannyEdgeDetector();
 		public MainForm()
 		{
+			CannyEdgeDetector.CalculateKernel(3, 5.5);
+// удалить потом
+//			CannyEdgeDetector.Kernel = new double [3, 3]; 
+//			CannyEdgeDetector.Kernel[0,0] = 0;
+//			CannyEdgeDetector.Kernel[1,0] = 1;
+//			CannyEdgeDetector.Kernel[2,0] = 0;
+//			CannyEdgeDetector.Kernel[0,1] = 1;
+//			CannyEdgeDetector.Kernel[1,1] = -4;
+//			CannyEdgeDetector.Kernel[2,1] = 1;
+//			CannyEdgeDetector.Kernel[0,2] = 0;
+//			CannyEdgeDetector.Kernel[1,2] = 1;
+//			CannyEdgeDetector.Kernel[2,2] = 0;
 			InitializeComponent();
 			
 		}
@@ -53,9 +64,9 @@ namespace CannyEdgeDetection
 		void BtnCalculateClick(object sender, EventArgs e)
 		{
 			SafeLog("Gaussian Kernel: \n");
-			SafeLog(Canny.KernelToString());
+			SafeLog(CannyEdgeDetector.KernelToString());
 			if(pctWindow1.Image != null){
-				pctWindow2.Image = Canny.ToGrayscale((Bitmap) pctWindow1.Image);
+				pctWindow2.Image = CannyEdgeDetector.ToGrayscale(CannyEdgeDetector.ConvolutionFilter((Bitmap) pctWindow1.Image));
 			}
 		}
 		

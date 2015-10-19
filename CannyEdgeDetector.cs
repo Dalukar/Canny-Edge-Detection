@@ -7,23 +7,20 @@
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 
 namespace CannyEdgeDetection
 {
 	/// <summary>
 	/// Класс для обнаружения границ.
 	/// </summary>
-	public class CannyEdgeDetector
+	public static class CannyEdgeDetector
 	{   
-		public double [,] GaussianKernel;
-		public CannyEdgeDetector()
-		{
-			GaussianKernel = CalculateKernel(3, 5.5);
-		}
+		static public double [,] Kernel;
 		
-		public static double[,] CalculateKernel(int length, double weight) 
+		public static void CalculateKernel(int length, double weight) 
 		{
-		    double[,] Kernel = new double [length, length]; 
+		    Kernel = new double [length, length]; 
 		    double sumTotal = 0; 
 		
 		    int kernelRadius = length / 2; 
@@ -59,10 +56,9 @@ namespace CannyEdgeDetection
 		            Kernel[y, x] = Kernel[y, x] *  (1.0 / sumTotal); 
 		        } 
 		    } 
-		    return Kernel; 
 		}
 		
-		public Bitmap ToGrayscale(Bitmap image)
+		public static Bitmap ToGrayscale(Bitmap image)
 		{
     		Bitmap returnMap = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb);
     		BitmapData bitmapData1 = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), 
@@ -95,25 +91,140 @@ namespace CannyEdgeDetection
     		return returnMap;
 		}
 		
-		public string KernelToString()
+		public static string KernelToString()
 		{
 			string str = "";
-			int length = GaussianKernel.GetLength(0);
-			if(length == 0)
+			if(Kernel == null)
 			{
 				return "no kernel";
 			}
+			int length = Kernel.GetLength(0);
 			for (int i = 0; i < length; i++)
 			{
 				str += " | ";
 				for (int j = 0; j < length; j++)
 				{
-					str += GaussianKernel[i,j] + " | ";
+					str += Kernel[i,j] + " | ";
 				}
 				str += "\n";
 			}
 			return str;
 		}
+		
+		public static Bitmap ConvolutionFilter(this Bitmap sourceBitmap,   
+                                              double factor = 1,  
+                                                   int bias = 0)  
+{ 
+    BitmapData sourceData = sourceBitmap.LockBits(new Rectangle(0, 0, 
+                            sourceBitmap.Width, sourceBitmap.Height), 
+                                              ImageLockMode.ReadOnly,  
+                                        PixelFormat.Format32bppArgb); 
+
+   
+    byte[] pixelBuffer = new byte[sourceData.Stride * sourceData.Height]; 
+    byte[] resultBuffer = new byte[sourceData.Stride * sourceData.Height]; 
+
+   
+    Marshal.Copy(sourceData.Scan0, pixelBuffer, 0, pixelBuffer.Length); 
+    sourceBitmap.UnlockBits(sourceData); 
+
+   
+    double blue = 0.0; 
+    double green = 0.0; 
+    double red = 0.0; 
+
+   
+    int filterWidth = Kernel.GetLength(1); 
+    int filterHeight = Kernel.GetLength(0); 
+
+   
+    int filterOffset = (filterWidth-1) / 2; 
+    int calcOffset = 0; 
+
+   
+    int byteOffset = 0; 
+
+   
+    for (int offsetY = filterOffset; offsetY <  
+        sourceBitmap.Height - filterOffset; offsetY++) 
+    {
+        for (int offsetX = filterOffset; offsetX <  
+            sourceBitmap.Width - filterOffset; offsetX++) 
+        {
+            blue = 0; 
+            green = 0; 
+            red = 0; 
+
+   
+            byteOffset = offsetY *  
+                         sourceData.Stride +  
+                         offsetX * 4; 
+
+   
+            for (int filterY = -filterOffset;  
+                filterY <= filterOffset; filterY++) 
+            { 
+                for (int filterX = -filterOffset; 
+                    filterX <= filterOffset; filterX++) 
+                { 
+
+   
+                    calcOffset = byteOffset +  
+                                 (filterX * 4) +  
+                                 (filterY * sourceData.Stride); 
+
+   
+                    blue += (double  )(pixelBuffer[calcOffset]) * 
+                            Kernel[filterY + filterOffset,  
+                                                filterX + filterOffset]; 
+
+   
+                    green += (double  )(pixelBuffer[calcOffset + 1]) * 
+                             Kernel[filterY + filterOffset,  
+                                                filterX + filterOffset]; 
+
+   
+                    red += (double  )(pixelBuffer[calcOffset + 2]) * 
+                           Kernel[filterY + filterOffset,  
+                                              filterX + filterOffset]; 
+                } 
+            } 
+
+   
+            blue = factor * blue + bias; 
+            green = factor * green + bias; 
+            red = factor * red + bias; 
+
+   
+            blue = (blue > 255 ? 255 : (blue < 0 ? 0 : blue)); 
+            green = (green > 255 ? 255 : (green < 0 ? 0 : green)); 
+            red = (red > 255 ? 255 : (red < 0 ? 0 : blue)); 
+
+   
+            resultBuffer[byteOffset] = (byte)(blue); 
+            resultBuffer[byteOffset + 1] = (byte)(green); 
+            resultBuffer[byteOffset + 2] = (byte)(red); 
+            resultBuffer[byteOffset + 3] = 255; 
+        }
+    }
+
+   
+    Bitmap resultBitmap = new Bitmap(sourceBitmap.Width, sourceBitmap.Height); 
+
+   
+    BitmapData resultData = resultBitmap.LockBits(new Rectangle (0, 0, 
+                             resultBitmap.Width, resultBitmap.Height), 
+                                              ImageLockMode.WriteOnly, 
+                                         PixelFormat.Format32bppArgb); 
+
+   
+    Marshal.Copy(resultBuffer, 0, resultData.Scan0, resultBuffer.Length); 
+    resultBitmap.UnlockBits(resultData); 
+
+   
+    return resultBitmap; 
+}
+		
 		
 //		int SimpleMotionDetect(IplImage img1, IplImage img2)
 //		{
