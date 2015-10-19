@@ -1,2 +1,2 @@
-# Motion_detect
-Детектор движения на видео
+# Canny-Edge-Detection
+Еще один курсач

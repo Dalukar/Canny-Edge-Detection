@@ -56,8 +56,7 @@ namespace CannyEdgeDetection
 		    { 
 		        for (int x = 0; x < length; x++) 
 		        { 
-		            Kernel[y, x] = Kernel[y, x] *  
-		                           (1.0 / sumTotal); 
+		            Kernel[y, x] = Kernel[y, x] *  (1.0 / sumTotal); 
 		        } 
 		    } 
 		    return Kernel; 
