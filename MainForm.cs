@@ -55,6 +55,7 @@ namespace CannyEdgeDetection
 			SafeLog(CannyEdgeDetector.GaussKernelToString());
 			if(pctWindow1.Image != null){
                 CannyEdgeDetector.CalculateEdges((Bitmap)pctWindow1.Image);
+                pctWindow1.Image = CannyEdgeDetector.originalimg;
                 pctWindow2.Image = CannyEdgeDetector.afterGaussImg;
                 pctWindow3.Image = CannyEdgeDetector.afterCannyImg;
                 pctWindow4.Image = CannyEdgeDetector.afterSupressionImg;
