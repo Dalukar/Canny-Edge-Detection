@@ -19,13 +19,14 @@ namespace CannyEdgeDetection
 	{
 		static public int gaussKernelSize = 5;
 		static public double gaussKernelDeviation = 1.4;
-		static public byte strongThreshold = 100;
-		static public byte weakThreshhol = 3;
+		static public byte strongThreshold = 40;
+		static public byte weakThreshhol = 5;
         static public Bitmap originalimg;
         static public Bitmap afterGaussImg;
         static public Bitmap afterCannyImg;
         static public Bitmap afterSupressionImg;
         static public Bitmap afterThresholdImg;
+        static public Bitmap afterBLOBsDetectImg;
         static double [,] gaussKernel;
         static double [,] GradientX;
         static double [,] GradientY;
@@ -45,6 +46,7 @@ namespace CannyEdgeDetection
             afterCannyImg = GenerateGradients(afterGaussImg);
             afterSupressionImg = NonMaximumSuppression(afterCannyImg);
             afterThresholdImg = DoubleTrheshold(afterSupressionImg, strongThreshold, weakThreshhol);
+            afterBLOBsDetectImg = FindBLOBs(afterThresholdImg);
             return afterThresholdImg;
         }
         
@@ -200,7 +202,6 @@ namespace CannyEdgeDetection
     		double gradY;
     		int byteOffset = 0; 
 
-   
     		for (int offsetX = filterOffset; offsetX < sourceBitmap.Height - filterOffset; offsetX++)
     		{
         		for (int offsetY = filterOffset; offsetY < sourceBitmap.Width - filterOffset; offsetY++) 
@@ -224,7 +225,8 @@ namespace CannyEdgeDetection
             		GradientY[offsetX, offsetY] = gradY;
             		gradientDirections[offsetX, offsetY] = Math.Atan(gradY / (gradX == 0 ? 0.01 : gradX)); 
 
-            		double pixelValue = (Math.Abs(gradX) + Math.Abs(gradY))/8;
+            		double pixelValue = (Math.Abs(gradX) + Math.Abs(gradY))/2;
+                    pixelValue = pixelValue > 255 ? 0 : pixelValue;
 
             		resultBuffer[byteOffset] = (byte)(pixelValue); 
             		resultBuffer[byteOffset + 1] = (byte)(pixelValue); 
@@ -315,7 +317,7 @@ namespace CannyEdgeDetection
         				}
         				else if(imagePointer1[0] > weakThreshhol)
         				{
-        					pixelValue = 127;
+        					pixelValue = 50;
         				}
         				else
         				{
@@ -335,8 +337,8 @@ namespace CannyEdgeDetection
     		image.UnlockBits(bitmapData1);
     		return returnMap;
 		}
-        
-        static List<List<int[]>> FindBLOBs(Bitmap image)
+
+        static Bitmap FindBLOBs(Bitmap image)
 		{
             Bitmap imageCopy = new Bitmap(image);
     		BitmapData bitmapData = imageCopy.LockBits(new Rectangle(0, 0, image.Width, image.Height), 
@@ -346,23 +348,59 @@ namespace CannyEdgeDetection
         		byte* imagePointer = (byte*)bitmapData.Scan0;
         		for(int i = 0; i < bitmapData.Height; i++) {
             		for(int j = 0; j < bitmapData.Width; j++) {
-        				bool isStrong = imagePointer[0] == 255;
-        				//перебираем соседей
+                        if (imagePointer[0] != 0)
+                        {
+                            List<int[]> BLOB = new List<int[]>();
+                            if(FindConnectedPixels(imagePointer, i, j, bitmapData.Height, bitmapData.Width, BLOB))
+                            {
+                                BLOBs.Add(BLOB);
+                            }
+                        }
                 		//4 bytes per pixel
                 		imagePointer += 4;
             		}
         		}
+                imagePointer = (byte*)bitmapData.Scan0;
+                int pointOffset;
+                foreach(List<int[]> BLOB in BLOBs)
+                {
+                    foreach(int[] point in BLOB)
+                    {
+                        pointOffset = (point[1] * 4) + (point[0] * bitmapData.Width * 4);
+                        imagePointer[pointOffset] = 255;
+                        imagePointer[pointOffset + 1] = 255;
+                        imagePointer[pointOffset + 2] = 255;
+                    }
+                }
     		}
     		imageCopy.UnlockBits(bitmapData);
-    		return BLOBs;
+            return imageCopy;
 		}
-        unsafe static bool ChekConnections(byte* pointer, int x, int y, int height, int width, List<int[]> BLOB)
+
+        /// <summary>
+        /// метод рекурсивно набирает пиксели в указанный массив BLOBа, возвращает true если BLOB сильный.
+        /// </summary>
+        unsafe static bool FindConnectedPixels(byte* pointer, int x, int y, int height, int width, List<int[]> BLOB)
         {
-        	if (pointer[0] !=0)
-        	pointer[0] = 0;
-        	pointer[1] = 0;
-        	pointer[2] = 0;
-        	return false;
+            bool isStrong = pointer[0] == 255;
+            BLOB.Add(new int[] { x, y });
+            pointer[0] = 0;
+            pointer[1] = 0;
+            pointer[2] = 0;
+            int calcOffset = 0; 
+            for (int i = -1; i <= 1; i++)
+            {
+                for (int j = -1; j <= 1; j++)
+                {
+                    calcOffset = (j * 4) + (i * width * 4);
+                    if (x + i < height && y + j < width && pointer[calcOffset] != 0)
+                    {
+                        byte* ptr = &pointer[calcOffset];
+                        isStrong = isStrong | FindConnectedPixels(ptr, x + i, y + j, height, width, BLOB);
+                    }
+                }
+            }
+            return isStrong;
         	
         }
 

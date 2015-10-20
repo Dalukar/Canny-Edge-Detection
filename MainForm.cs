@@ -58,6 +58,7 @@ namespace CannyEdgeDetection
                 pctWindow3.Image = CannyEdgeDetector.afterCannyImg;
                 pctWindow4.Image = CannyEdgeDetector.afterSupressionImg;
                 pctWindow5.Image = CannyEdgeDetector.afterThresholdImg;
+                pctWindow6.Image = CannyEdgeDetector.afterBLOBsDetectImg;
 			}
 		}
 		
