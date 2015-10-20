@@ -17,19 +17,19 @@ namespace CannyEdgeDetection
 	public static class CannyEdgeDetector
 	{
         static public double[,] gaussKernel;
+        static double [,] GradientX;
+        static double [,] GradientY;
         static double [,] gradientDirections;
         static public Bitmap originalimg;
         static public Bitmap afterGaussImg;
         static public Bitmap afterCannyImg;
         static public Bitmap afterSupressionImg;
-        //static Bitmap GradientX;
-        //static Bitmap GradientY;
-        static double[,] CannyKernelX = new double[3, 3] {{-0.25,0,0.25},
-                                                          {-0.5,0,0.5}, 
-                                                          {-0.25,0,0.25} };
-        static double[,] CannyKernelY = new double[3, 3] {{ 0.25, 0.5, 0.25},
+        static double[,] CannyKernelX = new double[3, 3] {{-1,0,1},
+                                                          {-2,0,2}, 
+                                                          {-1,0,1} };
+        static double[,] CannyKernelY = new double[3, 3] {{ 1, 2, 1},
                                                           { 0, 0, 0}, 
-                                                          {-0.25,-0.5,-0.25} };
+                                                          {-1,-2,-1} };
 		
         static CannyEdgeDetector()
         {
@@ -67,9 +67,10 @@ namespace CannyEdgeDetection
         {
 			originalimg = ToGrayscale(sourceBitmap);
 			afterGaussImg = ApplyFilter(originalimg, gaussKernel);
+			
             Bitmap ResultBitmapX = ApplyFilter(afterGaussImg, CannyKernelX);
             Bitmap ResultBitmapY = ApplyFilter(afterGaussImg, CannyKernelY);
-            afterCannyImg = BlendBitmapsAndGenerateGrdient(ResultBitmapX, ResultBitmapY);
+            afterCannyImg = GenerateGradients(afterGaussImg);
             afterSupressionImg = NonMaximumSuppression(afterCannyImg);
             return afterCannyImg;
         }
@@ -204,73 +205,64 @@ namespace CannyEdgeDetection
             return returnMap;
         }
 
-        static Bitmap GenerateGradients(this Bitmap sourceBitmap, double[,] kernel, double factor = 1, int bias = 0)  
+        static Bitmap GenerateGradients(Bitmap sourceBitmap)  
 		{
     		BitmapData sourceData = sourceBitmap.LockBits(new Rectangle(0, 0, sourceBitmap.Width, sourceBitmap.Height), 
-			                                              ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-    		byte[] pixelBuffer = new byte[sourceData.Stride * sourceData.Height]; 
+			                                              ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);        	
+    		byte[] pixelBuffer = new byte[sourceData.Stride * sourceData.Height];  
     		byte[] resultBuffer = new byte[sourceData.Stride * sourceData.Height]; 
     		Marshal.Copy(sourceData.Scan0, pixelBuffer, 0, pixelBuffer.Length); 
-    		sourceBitmap.UnlockBits(sourceData); 
+    		sourceBitmap.UnlockBits(sourceData);  
+
+    		GradientX = new double[sourceBitmap.Height, sourceBitmap.Width];
+            GradientY = new double[sourceBitmap.Height, sourceBitmap.Width];
+            gradientDirections = new double[sourceBitmap.Height, sourceBitmap.Width];
     		
-    		double blue = 0.0; 
-    		double green = 0.0; 
-    		double red = 0.0;
-
-            int filterWidth = kernel.GetLength(1);
-            int filterHeight = kernel.GetLength(0); 
-
-   
+            int filterWidth = CannyKernelX.GetLength(1);
+            int filterHeight = CannyKernelX.GetLength(0); 
     		int filterOffset = (filterWidth-1) / 2; 
     		int calcOffset = 0; 
-
-   
+    		double gradX;
+    		double gradY;
     		int byteOffset = 0; 
 
    
-    		for (int offsetY = filterOffset; offsetY < sourceBitmap.Height - filterOffset; offsetY++)
+    		for (int offsetX = filterOffset; offsetX < sourceBitmap.Height - filterOffset; offsetX++)
     		{
-        		for (int offsetX = filterOffset; offsetX < sourceBitmap.Width - filterOffset; offsetX++) 
+        		for (int offsetY = filterOffset; offsetY < sourceBitmap.Width - filterOffset; offsetY++) 
         		{
-            		blue = 0; 
-            		green = 0; 
-            		red = 0; 
+            		gradX = 0; 
+            		gradY = 0; 
 
-            		byteOffset = offsetY * sourceData.Stride + offsetX * 4; 
+            		byteOffset = offsetX * sourceData.Stride + offsetY * 4; 
 
             		for (int filterY = -filterOffset; filterY <= filterOffset; filterY++) 
             		{ 
                 		for (int filterX = -filterOffset; filterX <= filterOffset; filterX++) 
                 		{ 
-                    		calcOffset = byteOffset +  (filterX * 4) + (filterY * sourceData.Stride);
-
-                            blue += (double)(pixelBuffer[calcOffset]) * kernel[filterY + filterOffset, filterX + filterOffset];
-                            green += (double)(pixelBuffer[calcOffset + 1]) * kernel[filterY + filterOffset, filterX + filterOffset]; 
-                    		red += (double)(pixelBuffer[calcOffset + 2]) * kernel[filterY + filterOffset, filterX + filterOffset]; 
+                    		calcOffset = byteOffset +  (filterY * 4) + (filterX * sourceData.Stride);
+                            gradX += (double)(pixelBuffer[calcOffset]) * CannyKernelX[filterX + filterOffset, filterY + filterOffset];
+                            gradY += (double)(pixelBuffer[calcOffset]) * CannyKernelY[filterX + filterOffset, filterY + filterOffset];
                 		} 
             		} 
+            		// Считаем по красному, все равно картинка черно-белая.
+            		GradientX[offsetX, offsetY] = gradX;
+            		GradientY[offsetX, offsetY] = gradY;
+            		gradientDirections[offsetX, offsetY] = Math.Atan(gradY / (gradX == 0 ? 0.01 : gradX)); 
 
-            		blue = Math.Abs(factor * blue + bias); 
-            		green = Math.Abs(factor * green + bias); 
-            		red = Math.Abs(factor * red + bias); 
+            		double pixelValue = (Math.Abs(gradX) + Math.Abs(gradY))/8;
 
-            		blue = blue > 255 ? 255 : blue; 
-            		green = green > 255 ? 255 : green; 
-            		red = red > 255 ? 255 : red;
-
-            		resultBuffer[byteOffset] = (byte)(blue); 
-            		resultBuffer[byteOffset + 1] = (byte)(green); 
-            		resultBuffer[byteOffset + 2] = (byte)(red); 
+            		resultBuffer[byteOffset] = (byte)(pixelValue); 
+            		resultBuffer[byteOffset + 1] = (byte)(pixelValue); 
+            		resultBuffer[byteOffset + 2] = (byte)(pixelValue); 
             		resultBuffer[byteOffset + 3] = 255; 
         		}
     		}
 
    
     		Bitmap resultBitmap = new Bitmap(sourceBitmap.Width, sourceBitmap.Height); 
-
     		BitmapData resultData = resultBitmap.LockBits(new Rectangle (0, 0, resultBitmap.Width, resultBitmap.Height), 
     		                                              ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-
     		Marshal.Copy(resultBuffer, 0, resultData.Scan0, resultBuffer.Length); 
     		resultBitmap.UnlockBits(resultData); 
 
