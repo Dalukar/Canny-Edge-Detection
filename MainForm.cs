@@ -51,14 +51,13 @@ namespace CannyEdgeDetection
 		}
 		void BtnCalculateClick(object sender, EventArgs e)
 		{
-			SafeLog("Gaussian Kernel: \n");
-			SafeLog(CannyEdgeDetector.GaussKernelToString());
 			if(pctWindow1.Image != null){
                 CannyEdgeDetector.CalculateEdges((Bitmap)pctWindow1.Image);
                 pctWindow1.Image = CannyEdgeDetector.originalimg;
                 pctWindow2.Image = CannyEdgeDetector.afterGaussImg;
                 pctWindow3.Image = CannyEdgeDetector.afterCannyImg;
                 pctWindow4.Image = CannyEdgeDetector.afterSupressionImg;
+                pctWindow5.Image = CannyEdgeDetector.afterThresholdImg;
 			}
 		}
 		
