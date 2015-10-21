@@ -1,10 +1,4 @@
-﻿/*
- * Created by SharpDevelop.
- * User: VKirgintcev
- * Date: 27.05.2015
- * Time: 8:18
- */
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;

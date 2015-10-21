@@ -1,10 +1,4 @@
-﻿/*
- * Created by SharpDevelop.
- * User: VKirgintcev
- * Date: 19.10.2015
- * Time: 11:11
- */
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
