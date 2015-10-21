@@ -17,27 +17,29 @@ namespace CannyEdgeDetection
 	/// </summary>
 	public static class CannyEdgeDetector
 	{
-		static public int gaussKernelSize = 5;
-		static public double gaussKernelDeviation = 1.4;
-		static public byte strongThreshold = 40;
-		static public byte weakThreshhol = 5;
-        static public Bitmap originalimg;
+		static public int gaussKernelSize = 5; // размер матрицы для сглаживания, должен быть нечетный
+		static public double gaussKernelDeviation = 1.4; // ослабление, хз как правильно называется
+		static public byte strongThreshold = 40; // граница яркости для сильных граней
+        static public byte weakThreshhol = 5; // граница яркости для слабых граней
+        static public Bitmap originalimg; // картинки с промежуточными этапами
         static public Bitmap afterGaussImg;
         static public Bitmap afterCannyImg;
         static public Bitmap afterSupressionImg;
         static public Bitmap afterThresholdImg;
         static public Bitmap afterBLOBsDetectImg;
-        static double [,] gaussKernel;
-        static double [,] GradientX;
+        static double [,] gaussKernel; // матрица для сглаживания
+        static double [,] GradientX; // матрицы градиентов по осям
         static double [,] GradientY;
-        static double [,] gradientDirections;
-        static double [,] CannyKernelX = new double[3, 3]{{-1, 0, 1},
+        static double [,] gradientDirections; // матрица направлений градиентов
+        static double [,] CannyKernelX = new double[3, 3]{{-1, 0, 1}, // матрицы для вычисления градиентов
                                                           {-2, 0, 2}, 
                                                           {-1, 0, 1}};
         static double[,] CannyKernelY = new double[3, 3] {{ 1, 2, 1},
                                                           { 0, 0, 0}, 
                                                           {-1,-2,-1}};
-		
+        /// <summary>
+        /// Вычисление границ на изображении, также сохраняет промежуточные результаты в соответствующие переменные класса
+        /// </summary>
         public static Bitmap CalculateEdges(Bitmap sourceBitmap)
         {
 			CalculateGaussKernel(gaussKernelSize, gaussKernelDeviation);
@@ -49,7 +51,10 @@ namespace CannyEdgeDetection
             afterBLOBsDetectImg = FindBLOBs(afterThresholdImg);
             return afterThresholdImg;
         }
-        
+
+        /// <summary>
+        /// Расчет матрицы для сглаживания
+        /// </summary>
 		static void CalculateGaussKernel(int length, double weight) 
 		{
 		    gaussKernel = new double [length, length]; 
@@ -78,26 +83,35 @@ namespace CannyEdgeDetection
 		        } 
 		    } 
 		}
-		
+
+        /// <summary>
+        /// Конвертация изображения в оттенки серого
+        /// </summary>
 		static Bitmap ToGrayscale(Bitmap image)
 		{
+            // Создание изображения для воврата и получение доступа к пикселям
             Bitmap returnMap = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb);
     		BitmapData bitmapData1 = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), 
     	                                        	ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
     		BitmapData bitmapData2 = returnMap.LockBits(new Rectangle(0, 0, returnMap.Width, returnMap.Height),
                                                         ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-   	 		int a = 0;
+            int gray = 0;
     		unsafe {
+
+                // получение указателей на пиксели
         		byte* imagePointer1 = (byte*)bitmapData1.Scan0;
         		byte* imagePointer2 = (byte*)bitmapData2.Scan0;
+
+                //перебор всех пикселей на изображении
         		for(int i = 0; i < bitmapData1.Height; i++) {
             		for(int j = 0; j < bitmapData1.Width; j++) {
-                		a = (imagePointer1[0] + imagePointer1[1] + imagePointer1[2])/3;  
-                		imagePointer2[0] = (byte)a;
-                        imagePointer2[1] = (byte)a;
-                        imagePointer2[2] = (byte)a;
-                        imagePointer2[3] = imagePointer1[3];
-                		//4 bytes per pixel
+
+                        // усреднение цвета и запись его на все каналы выходного пикселя, альфа канал всегда остается = 255
+                        gray = (imagePointer1[0] + imagePointer1[1] + imagePointer1[2]) / 3;  
+                		imagePointer2[0] = (byte)gray;
+                        imagePointer2[1] = (byte)gray;
+                        imagePointer2[2] = (byte)gray;
+                        imagePointer2[3] = 255;
                 		imagePointer1 += 4;
                 		imagePointer2 += 4;
             		}
@@ -107,7 +121,10 @@ namespace CannyEdgeDetection
     		image.UnlockBits(bitmapData1);
     		return returnMap;
 		}
-		
+
+        /// <summary>
+        /// применение фильтра с указанной матрицей 
+        /// </summary>
 		static Bitmap ApplyFilter(this Bitmap sourceBitmap, double[,] kernel, double factor = 1, int bias = 0)
 		{
     		BitmapData sourceData = sourceBitmap.LockBits(new Rectangle(0, 0, sourceBitmap.Width, sourceBitmap.Height), 
@@ -180,7 +197,10 @@ namespace CannyEdgeDetection
 
     		return resultBitmap; 
 		}
-		
+        
+        /// <summary>
+        /// Создание матриц градиентов и их направлений, возвращает изображение с суммой градиентов по осям
+        /// </summary>
 		static Bitmap GenerateGradients(Bitmap sourceBitmap)  
 		{
     		BitmapData sourceData = sourceBitmap.LockBits(new Rectangle(0, 0, sourceBitmap.Width, sourceBitmap.Height), 
@@ -244,7 +264,10 @@ namespace CannyEdgeDetection
 
     		return resultBitmap; 
 		}
-
+        
+        /// <summary>
+        /// Удаление точек, находящихся вне локальных максимумов
+        /// </summary>
         static Bitmap NonMaximumSuppression (Bitmap image)
         {
             Bitmap returnMap = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb);
@@ -298,6 +321,9 @@ namespace CannyEdgeDetection
             return returnMap;
         }
 
+        /// <summary>
+        /// Удаление нечетких границ и разбиение оставшихся на сильные и слабые
+        /// </summary>
         static Bitmap DoubleTrheshold(Bitmap image, byte strongThreshold, byte weakThreshhol)
 		{
             Bitmap returnMap = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb);
@@ -338,6 +364,9 @@ namespace CannyEdgeDetection
     		return returnMap;
 		}
 
+        /// <summary>
+        /// Поиск и отображение BLOB'ов на изображении 
+        /// </summary>
         static Bitmap FindBLOBs(Bitmap image)
 		{
             Bitmap imageCopy = new Bitmap(image);
@@ -378,7 +407,7 @@ namespace CannyEdgeDetection
 		}
 
         /// <summary>
-        /// метод рекурсивно набирает пиксели в указанный массив BLOBа, возвращает true если BLOB сильный.
+        /// Метод рекурсивно набирает пиксели в указанный массив BLOBа, возвращает true если BLOB сильный.
         /// </summary>
         unsafe static bool FindConnectedPixels(byte* pointer, int x, int y, int height, int width, List<int[]> BLOB)
         {
