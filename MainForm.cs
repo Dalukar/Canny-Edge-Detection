@@ -7,7 +7,7 @@ using System.Threading;
 namespace CannyEdgeDetection
 {
 	/// <summary>
-	/// Description of MainForm.
+	/// Основная форма.
 	/// </summary>
 	public partial class MainForm : Form
 	{
@@ -16,17 +16,21 @@ namespace CannyEdgeDetection
 			InitializeComponent();
 			
 		}
-		
+        /// <summary>
+        /// Запись сообщений в лог.
+        /// </summary>
 		private void SafeLog(string text) {
             Action chTxt = new Action(() => {
                 LogBox.Text += text;
             });
- 
             if (InvokeRequired)
                 this.BeginInvoke(chTxt);
             else chTxt();
         }
 
+        /// <summary>
+        /// Выбор изображения.
+        /// </summary>
 		void BrowseButtonClick(object sender, EventArgs e)
 		{
 			OpenFileDialog openFileDialog1 = new OpenFileDialog();
@@ -43,10 +47,24 @@ namespace CannyEdgeDetection
     		}
 
 		}
+
+        /// <summary>
+        /// Вызов метода поиска граней и отображение промежуточных результатов.
+        /// </summary>
 		void BtnCalculateClick(object sender, EventArgs e)
 		{
 			if(pctWindow1.Image != null){
+
+                // Применение настроек детектора.
+                CannyEdgeDetector.gaussKernelSize = Convert.ToInt32(textGaussKernelSize.Text);
+                CannyEdgeDetector.gaussKernelDeviation = Convert.ToDouble(textGaussKernelDeviation.Text);
+                CannyEdgeDetector.strongThreshold = Convert.ToByte(textStrongThreshold.Text);
+                CannyEdgeDetector.weakThreshold = Convert.ToByte(textWeakThreshold.Text);
+
+                // Вызов функции поиска граней.
                 CannyEdgeDetector.CalculateEdges((Bitmap)pctWindow1.Image);
+
+                // Отображение результатов.
                 pctWindow1.Image = CannyEdgeDetector.originalimg;
                 pctWindow2.Image = CannyEdgeDetector.afterGaussImg;
                 pctWindow3.Image = CannyEdgeDetector.afterCannyImg;
@@ -55,6 +73,5 @@ namespace CannyEdgeDetection
                 pctWindow6.Image = CannyEdgeDetector.afterBLOBsDetectImg;
 			}
 		}
-		
 	}
 }

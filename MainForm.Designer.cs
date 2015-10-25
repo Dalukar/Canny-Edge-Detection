@@ -44,6 +44,14 @@
             this.pctWindow4 = new System.Windows.Forms.PictureBox();
             this.pctWindow5 = new System.Windows.Forms.PictureBox();
             this.pctWindow6 = new System.Windows.Forms.PictureBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.textGaussKernelSize = new System.Windows.Forms.TextBox();
+            this.textWeakThreshold = new System.Windows.Forms.TextBox();
+            this.textStrongThreshold = new System.Windows.Forms.TextBox();
+            this.textGaussKernelDeviation = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pctWindow1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pctWindow3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pctWindow2)).BeginInit();
@@ -65,7 +73,7 @@
             // LogBox
             // 
             this.LogBox.BackColor = System.Drawing.SystemColors.Info;
-            this.LogBox.Location = new System.Drawing.Point(12, 70);
+            this.LogBox.Location = new System.Drawing.Point(13, 627);
             this.LogBox.Name = "LogBox";
             this.LogBox.ReadOnly = true;
             this.LogBox.Size = new System.Drawing.Size(400, 176);
@@ -150,11 +158,87 @@
             this.pctWindow6.TabIndex = 9;
             this.pctWindow6.TabStop = false;
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 80);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(113, 13);
+            this.label1.TabIndex = 10;
+            this.label1.Text = "Размер ядра гаусса:";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 106);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(128, 13);
+            this.label2.TabIndex = 11;
+            this.label2.Text = "Отклонение гауссианы:";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(12, 132);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(137, 13);
+            this.label3.TabIndex = 12;
+            this.label3.Text = "Яркость сильных граней:";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(12, 158);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(131, 13);
+            this.label4.TabIndex = 13;
+            this.label4.Text = "Яркость слабых граней:";
+            // 
+            // textGaussKernelSize
+            // 
+            this.textGaussKernelSize.Location = new System.Drawing.Point(158, 77);
+            this.textGaussKernelSize.Name = "textGaussKernelSize";
+            this.textGaussKernelSize.Size = new System.Drawing.Size(100, 20);
+            this.textGaussKernelSize.TabIndex = 14;
+            this.textGaussKernelSize.Text = "5";
+            // 
+            // textWeakThreshold
+            // 
+            this.textWeakThreshold.Location = new System.Drawing.Point(158, 155);
+            this.textWeakThreshold.Name = "textWeakThreshold";
+            this.textWeakThreshold.Size = new System.Drawing.Size(100, 20);
+            this.textWeakThreshold.TabIndex = 15;
+            this.textWeakThreshold.Text = "5";
+            // 
+            // textStrongThreshold
+            // 
+            this.textStrongThreshold.Location = new System.Drawing.Point(158, 129);
+            this.textStrongThreshold.Name = "textStrongThreshold";
+            this.textStrongThreshold.Size = new System.Drawing.Size(100, 20);
+            this.textStrongThreshold.TabIndex = 16;
+            this.textStrongThreshold.Text = "40";
+            // 
+            // textGaussKernelDeviation
+            // 
+            this.textGaussKernelDeviation.Location = new System.Drawing.Point(158, 103);
+            this.textGaussKernelDeviation.Name = "textGaussKernelDeviation";
+            this.textGaussKernelDeviation.Size = new System.Drawing.Size(100, 20);
+            this.textGaussKernelDeviation.TabIndex = 17;
+            this.textGaussKernelDeviation.Text = "1.4";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1237, 815);
+            this.Controls.Add(this.textGaussKernelDeviation);
+            this.Controls.Add(this.textStrongThreshold);
+            this.Controls.Add(this.textWeakThreshold);
+            this.Controls.Add(this.textGaussKernelSize);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.pctWindow6);
             this.Controls.Add(this.pctWindow5);
             this.Controls.Add(this.pctWindow4);
@@ -184,5 +268,13 @@
         private System.Windows.Forms.PictureBox pctWindow4;
         private System.Windows.Forms.PictureBox pctWindow5;
         private System.Windows.Forms.PictureBox pctWindow6;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox textGaussKernelSize;
+        private System.Windows.Forms.TextBox textWeakThreshold;
+        private System.Windows.Forms.TextBox textStrongThreshold;
+        private System.Windows.Forms.TextBox textGaussKernelDeviation;
 		}
 		}
